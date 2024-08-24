@@ -1,23 +1,36 @@
 package package1;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.context.annotation.Bean;
+import package1.domain.entity.ClientEntity;
+import package1.domain.repository.ClientRepository;
+
+import java.util.List;
+
 
 @SpringBootApplication
-@RestController
+
 public class VendasApplication {
 
-    @Value("${spring.application.name}")
-    private String applicationName;
+    @Bean
+    public CommandLineRunner init(@Autowired ClientRepository clientRepository) {
+        return args -> {
+            ClientEntity clientEntity1 = new ClientEntity();
+            clientEntity1.setName("asd");
+            clientRepository.save(clientEntity1);
 
-    @GetMapping("/hello")
-    public String hello(){
-        return applicationName;
+            ClientEntity clientEntity2 = new ClientEntity();
+            clientEntity2.setName("asdsa");
+            clientRepository.save(clientEntity2);
+
+            List<ClientEntity> clients = clientRepository.findAll();
+            clients.forEach(System.out::println);
+
+        };
     }
-
     public static void main(String[] args) {
         SpringApplication.run(VendasApplication.class, args);
     }
