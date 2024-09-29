@@ -1,23 +1,13 @@
-package package1.domain.entity;
+package package1.domain.DTO;
 
 
-import jakarta.persistence.*;
+public class ClientDTO {
 
-
-@Entity
-@Table(name = "client")
-public class ClientEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Integer id;
-
-    @Column(name = "name", length = 127)
     private String name;
-    public ClientEntity() {}
+    public ClientDTO() {}
 
-    public ClientEntity(Integer id, String name) {
+    public ClientDTO(Integer id, String name) {
         this.id = id;
         this.name = name;
     }

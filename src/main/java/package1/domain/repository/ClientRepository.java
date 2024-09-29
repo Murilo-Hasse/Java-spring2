@@ -1,5 +1,8 @@
 package package1.domain.repository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -11,31 +14,55 @@ import package1.domain.entity.ClientEntity;
 
 @Repository
 public class ClientRepository {
+
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private EntityManager entityManager;
 
-    String INSERT = "insert into client(name) values(?)";
-    String SELECT_BY_ID = "select id, name from client where id = (?)";
-    String SELECT_ALL = "select id, name from client";
 
-    public ClientEntity save(@org.jetbrains.annotations.NotNull ClientEntity clientEntity) {
-        jdbcTemplate.update(INSERT, clientEntity.getName());
+    @Transactional
+    public ClientEntity save(ClientEntity clientEntity) {
+        entityManager.persist(clientEntity);
+        System.out.println(clientEntity.getId());
+        return clientEntity;
+    }
+    @Transactional
+    public List<ClientEntity> findAll() {
+        TypedQuery<ClientEntity> query = entityManager.createQuery("SELECT c FROM ClientEntity c", ClientEntity.class);
+        return query.getResultList();
+    }
+
+    @Transactional
+    public ClientEntity findById(int id) {
+        TypedQuery<ClientEntity> query = entityManager.createQuery("SELECT c FROM ClientEntity c WHERE c.id = :id", ClientEntity.class);
+        query.setParameter("id", id);  // Substitui o parâmetro ":id" pelo valor da variável 'id'
+        return query.getSingleResult();
+    }
+
+    @Transactional
+    public List<ClientEntity> findByName(String name) {
+        String jpql = "select c from client c where c.name like :name ";
+        TypedQuery<ClientEntity> query = entityManager.createQuery(jpql, ClientEntity.class);
+        query.setParameter("name",  "%" + name + "%");
+        return query.getResultList();
+    }
+
+    @Transactional
+    public void deleteById(int id) {
+        delete(entityManager.find(ClientEntity.class, id));
+    }
+    @Transactional
+    public void delete(ClientEntity clientEntity) {
+        if (!entityManager.contains(clientEntity)) {
+            entityManager.merge(clientEntity);
+        }
+        entityManager.remove(clientEntity);
+    }
+
+    @Transactional
+    public ClientEntity update(ClientEntity clientEntity) {
+        entityManager.merge(clientEntity);
         return clientEntity;
     }
 
-    public List<ClientEntity> findAll() {
-        return jdbcTemplate.query(SELECT_ALL, new ClientRowMapper());
-    }
 
-    public ClientEntity findById(int id) {
-        return jdbcTemplate.queryForObject(SELECT_BY_ID, new ClientRowMapper(), id);
-    }
-
-
-    private static class ClientRowMapper implements RowMapper<ClientEntity> {
-        @Override
-        public ClientEntity mapRow(ResultSet resultSet, int rowNum) throws SQLException {
-            return new ClientEntity(resultSet.getInt("id"), resultSet.getString("name"));
-        }
-    }
 }
